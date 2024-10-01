@@ -18,11 +18,11 @@ O **EasyParty** é uma rede social inovadora projetada para conectar pessoas e m
 
 - **Backend**: Java Spring
 - **Banco de Dados**: MySQL
-- **Chat**: Node.js
 
-## Instalação
+## Funcionalidades
+A classe **Usuario** é usada em diversas operações dentro do sistema, incluindo:
 
-### Pré-requisitos
-
-- Java JDK21 ou superior
-- MySQL 5.7 ou superior
+- **Cadastro de Usuário**: Permite a criação de novos usuários, garantindo que os dados atendam às validações.
+- **Autenticação**: Após o login gera um token. A senha do usuário é criptografada antes de ser salva, garantindo a segurança.
+- **Atualização de Dados**: Permite que os usuários atualizem suas informações pessoais, incluindo a senha, bio e outras.
+- **Consulta de Usuário**: Possibilita a recuperação das informações do usuário com base no nome de usuário.
