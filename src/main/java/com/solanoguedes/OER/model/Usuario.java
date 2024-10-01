@@ -57,17 +57,9 @@ public class Usuario {
     private boolean ativo = true;
 
     // Construtor padrão
-    public Usuario() {}
-
+    public Usuario() {
+    }
     // Getters e Setters
-
-    public @NotBlank(message = "Username não pode ser vazio.") @Size(min = 3, max = 50, message = "O nome de usuário deve ter entre 3 e 50 caracteres.") String getUsername() {
-        return username;
-    }
-
-    public void setUsername(@NotBlank(message = "Username não pode ser vazio.") @Size(min = 3, max = 50, message = "O nome de usuário deve ter entre 3 e 50 caracteres.") String username) {
-        this.username = username;
-    }
 
     public Long getId() {
         return id;
@@ -77,53 +69,59 @@ public class Usuario {
         this.id = id;
     }
 
-    public @NotBlank(message = "Nome não pode ser vazio.") @Size(min = 2, max = 100, message = "O nome deve ter entre 2 e 100 caracteres.") String getNome() {
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getNome() {
         return nome;
     }
 
-    public void setNome(@NotBlank(message = "Nome não pode ser vazio.") @Size(min = 2, max = 100, message = "O nome deve ter entre 2 e 100 caracteres.") String nome) {
+    public void setNome(String nome) {
         this.nome = nome;
     }
 
-    public @Email(message = "Email deve ser válido.") @NotBlank(message = "Email não pode ser vazio.") String getEmail() {
+    public String getEmail() {
         return email;
     }
 
-    public void setEmail(@Email(message = "Email deve ser válido.") @NotBlank(message = "Email não pode ser vazio.") String email) {
+    public void setEmail(String email) {
         this.email = email;
     }
 
-    public @NotBlank(message = "Senha não pode ser vazia.") @Size(min = 8, message = "A senha deve ter no mínimo 8 caracteres.") String getSenha() {
+    public String getSenha() {
         return senha;
     }
 
-    public void setSenha(@NotBlank(message = "Senha não pode ser vazia.") @Size(min = 8, message = "A senha deve ter no mínimo 8 caracteres.") String senha) {
+    public void setSenha(String senha) {
         this.senha = senha;
     }
 
-    public @Size(max = 255, message = "A bio pode ter no máximo 255 caracteres.") String getBio() {
+    public String getBio() {
         return bio;
     }
 
-    public void setBio(@Size(max = 255, message = "A bio pode ter no máximo 255 caracteres.") String bio) {
+    public void setBio(String bio) {
         this.bio = bio;
     }
 
-    @NotNull(message = "O perfil público ou privado deve ser informado.")
     public boolean isPublico() {
         return isPublico;
     }
 
-    public void setPublico(@NotNull(message = "O perfil público ou privado deve ser informado.") boolean publico) {
+    public void setPublico(boolean publico) {
         isPublico = publico;
     }
 
-    @NotNull(message = "A reputação não pode ser nula.")
     public int getReputacao() {
         return reputacao;
     }
 
-    public void setReputacao(@NotNull(message = "A reputação não pode ser nula.") int reputacao) {
+    public void setReputacao(int reputacao) {
         this.reputacao = reputacao;
     }
 
@@ -143,12 +141,11 @@ public class Usuario {
         this.instagramConectado = instagramConectado;
     }
 
-    @NotNull(message = "O status ativo da conta deve ser informado.")
     public boolean isAtivo() {
         return ativo;
     }
 
-    public void setAtivo(@NotNull(message = "O status ativo da conta deve ser informado.") boolean ativo) {
+    public void setAtivo(boolean ativo) {
         this.ativo = ativo;
     }
 
