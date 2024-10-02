@@ -1,13 +1,25 @@
 package com.solanoguedes.OER.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.solanoguedes.OER.model.enums.ProfileEnum;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "usuarios")
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
 public class Usuario {
 
     @Id
@@ -40,7 +52,7 @@ public class Usuario {
 
     @NotNull(message = "O perfil público ou privado deve ser informado.")
     @Column(nullable = false)
-    private boolean isPublico;
+    private boolean Publico;
 
     @NotNull(message = "A reputação não pode ser nula.")
     @Column(nullable = false)
@@ -56,97 +68,25 @@ public class Usuario {
     @Column(nullable = false)
     private boolean ativo = true;
 
-    // Construtor padrão
-    public Usuario() {
-    }
-    // Getters e Setters
+    @Column(nullable = true)
+    private String urlFotoPerfil;
 
-    public Long getId() {
-        return id;
+    @Column(name = "profile", nullable = false)
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_profile")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private Set<Integer> profiles = new HashSet<>();
+
+    public Set<ProfileEnum> getProfiles() {
+        return this.profiles.stream().map(x -> ProfileEnum.toEnum(x)).collect(Collectors.toSet());
     }
 
-    public void setId(Long id) {
+    public void addProfile(ProfileEnum profileEnum) {
+        this.profiles.add(profileEnum.getCode());
+    }
+
+    // Construtor que aceita um ID
+    public Usuario(Long id) {
         this.id = id;
     }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getSenha() {
-        return senha;
-    }
-
-    public void setSenha(String senha) {
-        this.senha = senha;
-    }
-
-    public String getBio() {
-        return bio;
-    }
-
-    public void setBio(String bio) {
-        this.bio = bio;
-    }
-
-    public boolean isPublico() {
-        return isPublico;
-    }
-
-    public void setPublico(boolean publico) {
-        isPublico = publico;
-    }
-
-    public int getReputacao() {
-        return reputacao;
-    }
-
-    public void setReputacao(int reputacao) {
-        this.reputacao = reputacao;
-    }
-
-    public String getLocalizacao() {
-        return localizacao;
-    }
-
-    public void setLocalizacao(String localizacao) {
-        this.localizacao = localizacao;
-    }
-
-    public String getInstagramConectado() {
-        return instagramConectado;
-    }
-
-    public void setInstagramConectado(String instagramConectado) {
-        this.instagramConectado = instagramConectado;
-    }
-
-    public boolean isAtivo() {
-        return ativo;
-    }
-
-    public void setAtivo(boolean ativo) {
-        this.ativo = ativo;
-    }
-
 }

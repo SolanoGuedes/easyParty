@@ -11,9 +11,10 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Component
-public class JwtUtil {
+public class JWTUtil {
 
     private String SECRET_KEY = "your_secret_key";
+    private long EXPIRATION_TIME = 1000 * 60 * 60; // 1 hora
 
     // Extrai o username do token JWT
     public String extractUsername(String token) {
@@ -27,7 +28,11 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
+        try {
+            return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
+
+        }catch (Exception e){ throw new RuntimeException("Token inválido: " + e.getMessage());
+        }
     }
 
     // Verifica se o token expirou
@@ -49,7 +54,7 @@ public class JwtUtil {
     private String createToken(Map<String, Object> claims, String subject) {
         return Jwts.builder().setClaims(claims).setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 horas
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY).compact();
     }
 

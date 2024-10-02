@@ -1,13 +1,16 @@
 package com.solanoguedes.OER.service;
 
 import com.solanoguedes.OER.model.Usuario;
+import com.solanoguedes.OER.model.enums.ProfileEnum;
 import com.solanoguedes.OER.repositories.UsuarioRepository;
-import com.solanoguedes.OER.util.JwtUtil;
+import com.solanoguedes.OER.util.JWTUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class UsuarioService {
@@ -16,15 +19,15 @@ public class UsuarioService {
     private UsuarioRepository usuarioRepository;
 
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Autowired
-    private JwtUtil jwtUtil;
+    private JWTUtil jwtUtil;
 
     // Método de login
     public String login(String username, String senha) throws Exception {
         Usuario usuario = consultarPorUsername(username);
-        if (usuario != null && passwordEncoder.matches(senha, usuario.getSenha())) {
+        if (usuario != null && bCryptPasswordEncoder.matches(senha, usuario.getSenha())) {
             return jwtUtil.generateToken(username);
         } else {
             throw new Exception("Usuário ou senha inválidos.");
@@ -36,7 +39,8 @@ public class UsuarioService {
         if (usuarioRepository.findByUsername(usuario.getUsername()).isPresent()) {
             throw new Exception("O username já está em uso.");
         }
-        usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));  // Criptografando a senha
+        usuario.setProfiles(Stream.of(ProfileEnum.USER.getCode()).collect(Collectors.toSet()));
+        usuario.setSenha(bCryptPasswordEncoder.encode(usuario.getSenha()));  // Criptografando a senha
         return usuarioRepository.save(usuario);
     }
 
@@ -52,7 +56,7 @@ public class UsuarioService {
             usuario.setLocalizacao(usuarioAtualizado.getLocalizacao());
             // Verifica se a senha foi alterada, caso sim, criptografa
             if (!usuarioAtualizado.getSenha().isEmpty()) {
-                usuario.setSenha(passwordEncoder.encode(usuarioAtualizado.getSenha()));
+                usuario.setSenha(bCryptPasswordEncoder.encode(usuarioAtualizado.getSenha()));
             }
             return usuarioRepository.save(usuario);
         } else {
