@@ -3,7 +3,7 @@ package com.solanoguedes.OER.service;
 import com.solanoguedes.OER.model.Usuario;
 import com.solanoguedes.OER.model.enums.ProfileEnum;
 import com.solanoguedes.OER.repositories.UsuarioRepository;
-import com.solanoguedes.OER.util.JWTUtil;
+import com.solanoguedes.OER.security.JWTUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
