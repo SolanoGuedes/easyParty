@@ -3,14 +3,12 @@ package com.solanoguedes.OER.controller;
 import com.solanoguedes.OER.model.dto.LoginRequest;
 import com.solanoguedes.OER.model.Usuario;
 import com.solanoguedes.OER.service.UsuarioService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
 
-import java.util.Optional;
 @RestController
 @RequestMapping("/usuarios")
 public class UsuarioController {
