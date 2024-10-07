@@ -4,6 +4,7 @@ import com.solanoguedes.OER.model.Seguidor;
 import com.solanoguedes.OER.model.Usuario;
 import com.solanoguedes.OER.repositories.SeguidorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

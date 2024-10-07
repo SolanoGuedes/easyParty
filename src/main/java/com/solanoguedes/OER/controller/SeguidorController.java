@@ -2,6 +2,7 @@ package com.solanoguedes.OER.controller;
 
 import com.solanoguedes.OER.model.Seguidor;
 import com.solanoguedes.OER.model.Usuario;
+import com.solanoguedes.OER.security.UsuarioSpringSecurity;
 import com.solanoguedes.OER.service.SeguidorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,14 +25,12 @@ public class SeguidorController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
             Object principal = authentication.getPrincipal();
-            if (principal instanceof UserDetails) {
-                return ((Usuario) principal).getId(); // Certifique-se de que o principal seja o objeto correto
+            if (principal instanceof UsuarioSpringSecurity) {
+                return ((UsuarioSpringSecurity) principal).getId();
             }
         }
-        return null; // Retorna null se não autenticado
+        return null;
     }
-
-
 
     // Rota para seguir um usuário
     @PostMapping("/seguir")

@@ -94,8 +94,8 @@ public class UsuarioService {
 
 
     // Método para deletar usuário pelo username
-    public void deletarUsuario(String username) throws Exception {
-        Optional<Usuario> usuario = usuarioRepository.findByUsername(username);
+    public void deletarUsuario(Long id) throws Exception {
+        Optional<Usuario> usuario = usuarioRepository.findById(id);
         if (usuario.isPresent()) {
             usuarioRepository.delete(usuario.get());
         } else {

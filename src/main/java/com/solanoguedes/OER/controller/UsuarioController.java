@@ -42,7 +42,7 @@ public class UsuarioController {
     @PatchMapping("/atualizar/{id}")
     public ResponseEntity<?> atualizarUsuario(@PathVariable Long id, @Valid @RequestBody Usuario usuario) {
         try {
-            Usuario usuarioAtualizado = usuarioService.atualizarUsuario(id, usuario);
+            Usuario usuarioAtualizado = usuarioService.atualizarUsuario(id, usuario); //com o token o usuario pode atualizar qualquer conta
             return ResponseEntity.ok(usuarioAtualizado);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Erro ao atualizar usuário: " + e.getMessage());
@@ -50,11 +50,11 @@ public class UsuarioController {
     }
 
     // Rota para deletar um usuário
-    @DeleteMapping("/deletar/{username}")
-    public ResponseEntity<?> deletarUsuario(@PathVariable String username) {
+    @DeleteMapping("/deletar/{id}")
+    public ResponseEntity<?> deletarUsuario(@PathVariable long id) {
         try {
-            usuarioService.deletarUsuario(username);
-            return ResponseEntity.ok("Usuário deletado com sucesso.");
+            usuarioService.deletarUsuario(id);
+            return ResponseEntity.ok("Usuário deletado com sucesso.");    //com o token o usuario pode deletar qualquer conta
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Erro ao deletar usuário: " + e.getMessage());
         }
