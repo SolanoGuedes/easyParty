@@ -49,20 +49,49 @@ public class UsuarioService {
         Optional<Usuario> usuarioExistente = usuarioRepository.findById(id);
         if (usuarioExistente.isPresent()) {
             Usuario usuario = usuarioExistente.get();
-            usuario.setNome(usuarioAtualizado.getNome());
-            usuario.setEmail(usuarioAtualizado.getEmail());
-            usuario.setBio(usuarioAtualizado.getBio());
-            usuario.setPublico(usuarioAtualizado.isPublico());
-            usuario.setLocalizacao(usuarioAtualizado.getLocalizacao());
+            // Atualiza somente os campos que não são nulos
+            if (usuarioAtualizado.getNome() != null) {
+                usuario.setNome(usuarioAtualizado.getNome());
+            }
+            if (usuarioAtualizado.getEmail() != null) {
+                usuario.setEmail(usuarioAtualizado.getEmail());
+            }
+            if (usuarioAtualizado.getSenha() != null) {
+                usuario.setSenha(usuarioAtualizado.getSenha());
+            }
+            if (usuarioAtualizado.getBio() != null) {
+                usuario.setBio(usuarioAtualizado.getBio());
+            }
+            if (usuarioAtualizado.isPublico() != usuario.isPublico()) {
+                usuario.setPublico(usuarioAtualizado.isPublico());
+            }
+            if (usuarioAtualizado.getReputacao() != null) {
+                usuario.setReputacao(usuarioAtualizado.getReputacao());
+            }
+            if (usuarioAtualizado.getLocalizacao() != null) {
+                usuario.setLocalizacao(usuarioAtualizado.getLocalizacao());
+            }
+            if (usuarioAtualizado.getInstagramConectado() != null) {
+                usuario.setInstagramConectado(usuarioAtualizado.getInstagramConectado());
+            }
+            if (usuarioAtualizado.getUrlFotoPerfil() != null) {
+                usuario.setUrlFotoPerfil(usuarioAtualizado.getUrlFotoPerfil());
+            }
+            if (usuarioAtualizado.isAtivo() != usuario.isAtivo()) {
+                usuario.setAtivo(usuarioAtualizado.isAtivo());
+            }
+
             // Verifica se a senha foi alterada, caso sim, criptografa
-            if (!usuarioAtualizado.getSenha().isEmpty()) {
+            if (usuarioAtualizado.getSenha() != null && !usuarioAtualizado.getSenha().isEmpty()) {
                 usuario.setSenha(bCryptPasswordEncoder.encode(usuarioAtualizado.getSenha()));
             }
+
             return usuarioRepository.save(usuario);
         } else {
             throw new Exception("Usuário não encontrado.");
         }
     }
+
 
     // Método para deletar usuário pelo username
     public void deletarUsuario(String username) throws Exception {

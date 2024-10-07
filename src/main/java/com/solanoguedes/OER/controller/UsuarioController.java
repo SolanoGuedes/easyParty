@@ -39,7 +39,7 @@ public class UsuarioController {
     }
 
     // Rota para atualizar um usuário
-    @PutMapping("/atualizar/{id}")
+    @PatchMapping("/atualizar/{id}")
     public ResponseEntity<?> atualizarUsuario(@PathVariable Long id, @Valid @RequestBody Usuario usuario) {
         try {
             Usuario usuarioAtualizado = usuarioService.atualizarUsuario(id, usuario);

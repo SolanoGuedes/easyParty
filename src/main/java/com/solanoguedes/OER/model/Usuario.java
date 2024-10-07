@@ -52,11 +52,11 @@ public class Usuario {
 
     @NotNull(message = "O perfil público ou privado deve ser informado.")
     @Column(nullable = false)
-    private boolean Publico;
+    private boolean publico;
 
     @NotNull(message = "A reputação não pode ser nula.")
     @Column(nullable = false)
-    private int reputacao = 0;
+    private Integer reputacao = 0;
 
     @Column(nullable = true)
     private String localizacao;
