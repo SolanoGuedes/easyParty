@@ -12,6 +12,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -84,6 +85,13 @@ public class Usuario {
     public void addProfile(ProfileEnum profileEnum) {
         this.profiles.add(profileEnum.getCode());
     }
+
+    // Relacionamento com a tabela de seguidores
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Seguidor> seguidores;
+
+    @OneToMany(mappedBy = "seguidor", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Seguidor> seguindo;
 
     // Construtor que aceita um ID
     public Usuario(Long id) {

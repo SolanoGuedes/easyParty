@@ -2,6 +2,7 @@ package com.solanoguedes.OER.service;
 
 import com.solanoguedes.OER.model.Usuario;
 import com.solanoguedes.OER.model.enums.ProfileEnum;
+import com.solanoguedes.OER.repositories.SeguidorRepository;
 import com.solanoguedes.OER.repositories.UsuarioRepository;
 import com.solanoguedes.OER.security.JWTUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,9 @@ import java.util.stream.Stream;
 
 @Service
 public class UsuarioService {
+
+    @Autowired
+    private SeguidorRepository seguidorRepository;
 
     @Autowired
     private UsuarioRepository usuarioRepository;
@@ -97,7 +101,7 @@ public class UsuarioService {
     public void deletarUsuario(Long id) throws Exception {
         Optional<Usuario> usuario = usuarioRepository.findById(id);
         if (usuario.isPresent()) {
-            usuarioRepository.delete(usuario.get());
+            usuarioRepository.deleteById(id);
         } else {
             throw new Exception("Usuário não encontrado.");
         }

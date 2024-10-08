@@ -50,13 +50,19 @@ import lombok.extern.slf4j.Slf4j;
         public ResponseEntity<Object> handleAllUncaughtException(
                 Exception exception,
                 WebRequest request) {
-            final String errorMessage = "Unknown error occurred";
+            String errorMessage;
+
+            // Verifica se a exceção contém a mensagem específica que você quer tratar
+            if (exception.getMessage().contains("Usuário já está seguindo este usuário")) {
+                errorMessage = "Usuário já está seguindo este usuário.";
+                log.warn(errorMessage); // Você pode registrar um aviso em vez de um erro aqui
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(errorMessage);
+            }
+
+            // Se não for a mensagem específica, continua com a lógica original
+            errorMessage = "Unknown error occurred";
             log.error(errorMessage, exception);
-            return buildErrorResponse(
-                    exception,
-                    errorMessage,
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    request);
+            return buildErrorResponse(exception, errorMessage, HttpStatus.INTERNAL_SERVER_ERROR, request);
         }
 
         @ExceptionHandler(DataIntegrityViolationException.class)
