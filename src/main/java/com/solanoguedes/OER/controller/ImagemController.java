@@ -18,22 +18,17 @@ public class ImagemController {
     @Autowired
     private ImagemService imagemService;
 
-    // Endpoint para fazer upload de uma imagem (já existente)
+    // Endpoint para fazer upload de uma imagem
     @PostMapping("/upload")
-    public Imagem uploadImagem(@RequestParam("file") MultipartFile file, @RequestParam("legenda") String legenda, @RequestParam("privacidade") String privacidade) throws IOException {
+    public Imagem uploadImagem(@RequestParam("file") MultipartFile file, @RequestParam("legenda") String legenda, @RequestParam("privacidade") String privacidade,  @RequestParam(value = "expiraEm24Horas", defaultValue = "false") boolean expiraEm24Horas) throws IOException {
         Long idUsuario = getAuthenticatedUserId();
-        return imagemService.uploadImagem(file, legenda, idUsuario, privacidade);
+        return imagemService.uploadImagem(file, legenda, idUsuario, privacidade, expiraEm24Horas);
     }
 
     // Endpoint para listar todas as imagens públicas de um usuário (já existente)
     @GetMapping("/publicas")
     public List<Imagem> listarImagensPublicas(@RequestParam(required = false) @PathVariable Long idUsuario) {
-        Long usuario_id;
-        if (idUsuario != null){
-            usuario_id = idUsuario;
-        } else {
-            usuario_id = getAuthenticatedUserId();
-        }
+        Long usuario_id = (idUsuario != null) ? idUsuario : getAuthenticatedUserId();
         return imagemService.listarImagensPublicas(usuario_id);
     }
 
@@ -51,6 +46,12 @@ public class ImagemController {
     @GetMapping("/{idImagem}")
     public Imagem obterImagemPorId(@PathVariable Long idImagem) {
         return imagemService.obterImagemPorId(idImagem);
+    }
+    
+    // Endpoint para alterar a privacidade de uma imagem
+    @PutMapping("/{idImagem}/privacidade")
+    public Imagem alterarPrivacidadeImagem(@PathVariable Long idImagem, @RequestParam("privacidade") String novaPrivacidade) {
+        return imagemService.alterarPrivacidadeImagem(idImagem, novaPrivacidade);
     }
 
     // Novo endpoint para deletar uma imagem
