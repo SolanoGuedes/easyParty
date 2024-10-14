@@ -3,6 +3,7 @@ package com.solanoguedes.OER.controller;
 import com.solanoguedes.OER.model.Imagem;
 import com.solanoguedes.OER.service.ImagemService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -58,5 +59,11 @@ public class ImagemController {
     @DeleteMapping("/{idImagem}")
     public void deletarImagem(@PathVariable Long idImagem) throws IOException {
         imagemService.deletarImagem(idImagem);
+    }
+
+    @GetMapping("/{idImagem}")
+    public ResponseEntity<Imagem> obterImagemComDetalhes(@PathVariable Long idImagem) {
+        Imagem imagem = imagemService.obterImagemComDetalhes(idImagem);
+        return ResponseEntity.ok(imagem);
     }
 }

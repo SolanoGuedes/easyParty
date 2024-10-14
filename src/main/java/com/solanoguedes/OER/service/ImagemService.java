@@ -1,7 +1,10 @@
 package com.solanoguedes.OER.service;
 
+import com.solanoguedes.OER.model.Comentario;
 import com.solanoguedes.OER.model.Imagem;
 import com.solanoguedes.OER.model.Usuario;
+import com.solanoguedes.OER.repositories.ComentarioRepository;
+import com.solanoguedes.OER.repositories.CurtidaRepository;
 import com.solanoguedes.OER.repositories.ImagemRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +28,15 @@ public class ImagemService {
 
     @Autowired
     private ImagemRepository imagemRepository;
+
+    @Autowired
+    private CurtidaRepository curtidaRepository;
+
+    @Autowired
+    private ComentarioRepository comentarioRepository;
+
+    @Autowired
+    private ComentarioService comentarioService;
 
     // Scheduler para executar a tarefa de alteração de privacidade
     private final ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
@@ -125,5 +137,24 @@ public class ImagemService {
         // Atualiza a privacidade da imagem
         imagem.setPrivacidade(novaPrivacidade);
         return imagemRepository.save(imagem);  // Salva a alteração no banco de dados
+    }
+
+    public Imagem obterImagemComDetalhes(Long idImagem) {
+        Imagem imagem = imagemRepository.findById(idImagem)
+                .orElseThrow(() -> new RuntimeException("Imagem não encontrada com ID: " + idImagem));
+
+        // Contar o número de curtidas
+        int numeroCurtidas = curtidaRepository.countByImagem(imagem);
+        imagem.setNumeroCurtidas(numeroCurtidas);
+
+        // Contar o número de comentários
+        int numeroComentarios = comentarioRepository.countByImagem(imagem);
+        imagem.setNumeroComentarios(numeroComentarios);
+
+        // Listar os 3 primeiros comentários
+        List<Comentario> comentarios = comentarioService.listarTresPrimeirosComentariosImagem(imagem.getIdImagem());
+        imagem.setComentarios(comentarios); // Adicione um método para armazenar os comentários no modelo
+
+        return imagem;
     }
 }

@@ -1,7 +1,10 @@
 package com.solanoguedes.OER.service;
 
+import com.solanoguedes.OER.model.Comentario;
 import com.solanoguedes.OER.model.Video;
 import com.solanoguedes.OER.model.Usuario;
+import com.solanoguedes.OER.repositories.ComentarioRepository;
+import com.solanoguedes.OER.repositories.CurtidaRepository;
 import com.solanoguedes.OER.repositories.VideoRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +27,15 @@ public class VideoService {
 
     @Autowired
     private VideoRepository videoRepository;
+
+    @Autowired
+    private CurtidaRepository curtidaRepository;
+
+    @Autowired
+    private ComentarioRepository comentarioRepository;
+
+    @Autowired
+    private ComentarioService comentarioService;
 
     // Scheduler para executar a tarefa de alteração de privacidade
     private final ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
@@ -122,5 +134,24 @@ public class VideoService {
         // Atualiza a privacidade do vídeo
         video.setPrivacidade(novaPrivacidade);
         return videoRepository.save(video);  // Salva a alteração no banco de dados
+    }
+
+    public Video obterVideoComDetalhes(Long idVideo) {
+        Video video = videoRepository.findById(idVideo)
+                .orElseThrow(() -> new RuntimeException("Vídeo não encontrado com ID: " + idVideo));
+
+        // Contar o número de curtidas
+        int numeroCurtidas = curtidaRepository.countByVideo(video);
+        video.setNumeroCurtidas(numeroCurtidas);
+
+        // Contar o número de comentários
+        int numeroComentarios = comentarioRepository.countByVideo(video);
+        video.setNumeroComentarios(numeroComentarios);
+
+        // Listar os 3 primeiros comentários
+        List<Comentario> comentarios = comentarioService.listarTresPrimeirosComentariosVideo(video.getIdVideo());
+        video.setComentarios(comentarios); // Adicione um método para armazenar os comentários no modelo
+
+        return video;
     }
 }

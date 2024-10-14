@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "videos")
@@ -57,6 +58,9 @@ public class Video {
 
     @Column(length = 20, nullable = false)
     private String tipoVideo;  // "story" ou "página_inicial"
+
+    @Transient // Isso não vai para o banco de dados
+    private List<Comentario> comentarios; // Para armazenar os 3 primeiros comentários
 
     // Construtor que aceita um ID do vídeo
     public Video(Long idVideo) {

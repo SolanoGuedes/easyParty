@@ -3,6 +3,7 @@ package com.solanoguedes.OER.controller;
 import com.solanoguedes.OER.model.Video;
 import com.solanoguedes.OER.service.VideoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -55,5 +56,12 @@ public class VideoController {
     @DeleteMapping("/{idVideo}")
     public void deletarVideo(@PathVariable Long idVideo) throws IOException {
         videoService.deletarVideo(idVideo);
+    }
+
+    // Endpoint para obter detalhes do vídeo, incluindo curtidas e comentários
+    @GetMapping("/{idVideo}")
+    public ResponseEntity<Video> obterVideoComDetalhes(@PathVariable Long idVideo) {
+        Video video = videoService.obterVideoComDetalhes(idVideo);
+        return ResponseEntity.ok(video);
     }
 }

@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "imagens")
@@ -68,6 +69,9 @@ public class Imagem {
 
     @Column(length = 255)
     private String edicoesAplicadas;
+
+    @Transient // Isso não vai para o banco de dados
+    private List<Comentario> comentarios; // Para armazenar os 3 primeiros comentários
 
     // Construtor que aceita um ID da imagem
     public Imagem(Long idImagem) {
