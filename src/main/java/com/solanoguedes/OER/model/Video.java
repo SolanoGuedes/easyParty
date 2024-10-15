@@ -18,7 +18,7 @@ public class Video {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idVideo;
+    private Long id;
 
     @NotNull(message = "O ID do usuário é obrigatório.")
     @ManyToOne(fetch = FetchType.LAZY)
@@ -64,6 +64,6 @@ public class Video {
 
     // Construtor que aceita um ID do vídeo
     public Video(Long idVideo) {
-        this.idVideo = idVideo;
+        this.id = idVideo;
     }
 }

@@ -3,6 +3,7 @@ package com.solanoguedes.OER.service;
 import com.solanoguedes.OER.model.Comentario;
 import com.solanoguedes.OER.model.Imagem;
 import com.solanoguedes.OER.model.Usuario;
+import com.solanoguedes.OER.model.dto.ImagemDTO;
 import com.solanoguedes.OER.repositories.ComentarioRepository;
 import com.solanoguedes.OER.repositories.CurtidaRepository;
 import com.solanoguedes.OER.repositories.ImagemRepository;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 public class ImagemService {
@@ -64,33 +66,72 @@ public class ImagemService {
         imagem = imagemRepository.save(imagem);
 
         if (expiraEm24Horas) {
-            agendarMudancaDePrivacidade(imagem.getIdImagem(), 24);
+            agendarMudancaDePrivacidade(imagem.getId(), 24);
         }
         // Salva a imagem no repositório e retorna a imagem salva
         return imagem;
     }
 
-    // Método para listar todas as imagens públicas de um usuário (já existente)
-    public List<Imagem> listarImagensPublicas(Long idUsuario) {
-        return imagemRepository.findByUsuarioIdAndPrivacidade(idUsuario, "publica");
+    // Método para listar todas as imagens públicas de um usuário
+    public List<ImagemDTO> listarImagensPublicas(Long idUsuario) {
+        return imagemRepository.findByUsuario_IdAndPrivacidade(idUsuario, "publico")
+                .stream()
+                .map(imagem -> new ImagemDTO(
+                        imagem.getId(),
+                        imagem.getDataPostagem(),
+                        imagem.getFormatoArquivo(),
+                        imagem.getLegenda(),
+                        comentarioRepository.countByImagem(imagem),
+                        curtidaRepository.countByImagem(imagem),
+                        imagem.getPrivacidade(),
+                        imagem.getStatus(),
+                        imagem.getTamanhoArquivo(),
+                        imagem.getUrlImagem(),
+                        imagem.getUsuario().getId()
+                ))
+                .collect(Collectors.toList());
     }
 
     // Método para listar as imagens privadas de um usuário autenticado
-    public List<Imagem> listarImagensPrivadas(Long idUsuario) {
-        return imagemRepository.findByUsuarioIdAndPrivacidade(idUsuario, "privada");
+    public List<ImagemDTO> listarImagensPrivadas(Long idUsuario) {
+        return imagemRepository.findByUsuario_IdAndPrivacidade(idUsuario, "privado")
+                .stream()
+                .map(imagem -> new ImagemDTO(
+                        imagem.getId(),
+                        imagem.getDataPostagem(),
+                        imagem.getFormatoArquivo(),
+                        imagem.getLegenda(),
+                        comentarioRepository.countByImagem(imagem),
+                        curtidaRepository.countByImagem(imagem),
+                        imagem.getPrivacidade(),
+                        imagem.getStatus(),
+                        imagem.getTamanhoArquivo(),
+                        imagem.getUrlImagem(),
+                        imagem.getUsuario().getId()
+                ))
+                .collect(Collectors.toList());
     }
 
-    // Novo método para buscar uma imagem pelo ID
-    public Imagem obterImagemPorId(Long idImagem) {
-        // Busca a imagem no repositório pelo ID
-        Optional<Imagem> imagem = imagemRepository.findById(idImagem);
 
-        // Se a imagem não for encontrada, lança uma exceção
-        if (imagem.isPresent()) {
-            return imagem.get();
-        } else {
-            throw new RuntimeException("Imagem não encontrada com ID: " + idImagem);
-        }
+    public ImagemDTO obterImagemPorIdDTO(Long idImagem) {
+        // Busca a imagem no repositório pelo ID
+        Imagem imagem = imagemRepository.findById(idImagem)
+                .orElseThrow(() -> new RuntimeException("Imagem não encontrada com ID: " + idImagem));
+
+        // Converte a entidade Imagem para ImagemDTO
+        return new ImagemDTO(
+                imagem.getId(),
+                imagem.getDataPostagem(),
+                imagem.getFormatoArquivo(),
+                imagem.getLegenda(),
+                comentarioRepository.countByImagem(imagem),
+                curtidaRepository.countByImagem(imagem),
+                imagem.getPrivacidade(),
+                imagem.getStatus(),
+                imagem.getTamanhoArquivo(),
+                imagem.getUrlImagem(),
+                imagem.getUsuario().getId()  // Obtém o ID do usuário relacionado
+        );
     }
 
     // Novo método para deletar uma imagem
@@ -109,11 +150,11 @@ public class ImagemService {
         }
     }
 
-
     //upload de imagem que deixa a privacidade somente por 24 hrs, vou usar em stories achei essa a melhor forma
     public ImagemService() {
         taskScheduler.initialize();  // Inicializa o scheduler
     }
+
     // Agenda a mudança de privacidade para daqui a 24 horas
     private void agendarMudancaDePrivacidade(Long idImagem, int horas) {
         // Converte horas em milissegundos
@@ -128,15 +169,14 @@ public class ImagemService {
         }, new java.util.Date(System.currentTimeMillis() + delayMillis));
     }
 
-    // Método para mudar a privacidade de uma imagem
-    public Imagem alterarPrivacidadeImagem(Long idImagem, String novaPrivacidade) {
-        // Busca a imagem pelo ID
+    public ImagemDTO alterarPrivacidadeImagem(Long idImagem, String novaPrivacidade) {
         Imagem imagem = imagemRepository.findById(idImagem)
-                .orElseThrow(() -> new RuntimeException("Imagem não encontrada com ID: " + idImagem));
+                .orElseThrow(() -> new RuntimeException("Imagem não encontrada"));
 
-        // Atualiza a privacidade da imagem
         imagem.setPrivacidade(novaPrivacidade);
-        return imagemRepository.save(imagem);  // Salva a alteração no banco de dados
+        imagemRepository.save(imagem);
+
+        return new ImagemDTO(imagem.getId(), imagem.getPrivacidade(), imagem.getUrlImagem());
     }
 
     public Imagem obterImagemComDetalhes(Long idImagem) {
@@ -150,10 +190,6 @@ public class ImagemService {
         // Contar o número de comentários
         int numeroComentarios = comentarioRepository.countByImagem(imagem);
         imagem.setNumeroComentarios(numeroComentarios);
-
-        // Listar os 3 primeiros comentários
-        List<Comentario> comentarios = comentarioService.listarTresPrimeirosComentariosImagem(imagem.getIdImagem());
-        imagem.setComentarios(comentarios); // Adicione um método para armazenar os comentários no modelo
 
         return imagem;
     }

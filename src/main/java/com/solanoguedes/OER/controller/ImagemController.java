@@ -1,6 +1,7 @@
 package com.solanoguedes.OER.controller;
 
 import com.solanoguedes.OER.model.Imagem;
+import com.solanoguedes.OER.model.dto.ImagemDTO;
 import com.solanoguedes.OER.service.ImagemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -28,42 +29,38 @@ public class ImagemController {
 
     // Endpoint para listar todas as imagens públicas de um usuário (já existente)
     @GetMapping("/publicas")
-    public List<Imagem> listarImagensPublicas(@RequestParam(required = false) @PathVariable Long idUsuario) {
-        Long usuario_id = (idUsuario != null) ? idUsuario : getAuthenticatedUserId();
-        return imagemService.listarImagensPublicas(usuario_id);
+    public List<ImagemDTO> listarImagensPublicas(@RequestParam(required = false) Long idUsuario) {
+        Long usuarioId = (idUsuario != null) ? idUsuario : getAuthenticatedUserId();
+        return imagemService.listarImagensPublicas(usuarioId);
     }
 
     // Novo endpoint para listar as imagens privadas do usuário autenticado
     @GetMapping("/privadas")
-    public List<Imagem> listarImagensPrivadas() {
-        Long idUsuarioAutenticado = getAuthenticatedUserId();
-        if (idUsuarioAutenticado == null) {
-            throw new RuntimeException("Usuário não autenticado");
-        }
-        return imagemService.listarImagensPrivadas(idUsuarioAutenticado);
+    public List<ImagemDTO> listarImagensPrivadas() {
+        Long idUsuario = getAuthenticatedUserId();
+        return imagemService.listarImagensPrivadas(idUsuario);
     }
 
     // Novo endpoint para buscar uma imagem específica pelo ID
     @GetMapping("/{idImagem}")
-    public Imagem obterImagemPorId(@PathVariable Long idImagem) {
-        return imagemService.obterImagemPorId(idImagem);
-    }
-    
-    // Endpoint para alterar a privacidade de uma imagem
-    @PutMapping("/{idImagem}/privacidade")
-    public Imagem alterarPrivacidadeImagem(@PathVariable Long idImagem, @RequestParam("privacidade") String novaPrivacidade) {
-        return imagemService.alterarPrivacidadeImagem(idImagem, novaPrivacidade);
+    public ImagemDTO obterImagemPorId(@PathVariable Long idImagem) {
+        return imagemService.obterImagemPorIdDTO(idImagem);  // Altere para chamar o método que retorna o DTO
     }
 
+    // Endpoint para alterar a privacidade de uma imagem
+    @PutMapping("/{idImagem}/privacidade")
+    public ResponseEntity<ImagemDTO> alterarPrivacidadeImagem(
+            @PathVariable Long idImagem,
+            @RequestParam("privacidade") String novaPrivacidade) {
+        ImagemDTO imagemDTO = imagemService.alterarPrivacidadeImagem(idImagem, novaPrivacidade);
+        return ResponseEntity.ok(imagemDTO);
+    }
+
+
     // Novo endpoint para deletar uma imagem
-    @DeleteMapping("/{idImagem}")
+    @DeleteMapping("deletar/{idImagem}")
     public void deletarImagem(@PathVariable Long idImagem) throws IOException {
         imagemService.deletarImagem(idImagem);
     }
 
-    @GetMapping("/{idImagem}")
-    public ResponseEntity<Imagem> obterImagemComDetalhes(@PathVariable Long idImagem) {
-        Imagem imagem = imagemService.obterImagemComDetalhes(idImagem);
-        return ResponseEntity.ok(imagem);
-    }
 }

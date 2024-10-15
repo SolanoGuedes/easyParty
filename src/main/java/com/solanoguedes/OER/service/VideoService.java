@@ -67,7 +67,7 @@ public class VideoService {
 
         // Verifica se deve agendar a mudança de privacidade
         if (expiraEm24Horas && "story".equals(tipoVideo)) {
-            agendarMudancaDePrivacidade(video.getIdVideo(), 24);
+            agendarMudancaDePrivacidade(video.getId(), 24);
         }
 
         // Retorna o vídeo salvo
@@ -147,10 +147,6 @@ public class VideoService {
         // Contar o número de comentários
         int numeroComentarios = comentarioRepository.countByVideo(video);
         video.setNumeroComentarios(numeroComentarios);
-
-        // Listar os 3 primeiros comentários
-        List<Comentario> comentarios = comentarioService.listarTresPrimeirosComentariosVideo(video.getIdVideo());
-        video.setComentarios(comentarios); // Adicione um método para armazenar os comentários no modelo
 
         return video;
     }

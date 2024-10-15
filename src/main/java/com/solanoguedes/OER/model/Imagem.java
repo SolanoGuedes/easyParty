@@ -1,5 +1,7 @@
 package com.solanoguedes.OER.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -18,7 +20,7 @@ public class Imagem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idImagem;
+    private Long id;
 
     @NotNull(message = "O ID do usuário é obrigatório.")
     @ManyToOne(fetch = FetchType.LAZY)
@@ -45,7 +47,7 @@ public class Imagem {
     private Integer alturaImagem;
 
     // Armazena os metadados EXIF em formato JSON
-    @Column(columnDefinition = "jsonb")
+    @Column(columnDefinition = "json")
     private String exifMetadados;
 
     @Column(length = 10, nullable = false)
@@ -61,7 +63,7 @@ public class Imagem {
     private Integer numeroComentarios = 0;
 
     // Lista de IDs de usuários marcados na imagem, armazenado em formato JSON
-    @Column(columnDefinition = "jsonb")
+    @Column(columnDefinition = "json")
     private String tagsUsuario;
 
     @Column(length = 255)
@@ -73,8 +75,14 @@ public class Imagem {
     @Transient // Isso não vai para o banco de dados
     private List<Comentario> comentarios; // Para armazenar os 3 primeiros comentários
 
+    @OneToMany(mappedBy = "imagem", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Curtida> curtidas; // Adiciona a lista de curtidas
+
+    @OneToMany(mappedBy = "imagem", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Comentario> comentariosList; // Adiciona a lista de comentários
+
     // Construtor que aceita um ID da imagem
     public Imagem(Long idImagem) {
-        this.idImagem = idImagem;
+        this.id = idImagem;
     }
 }

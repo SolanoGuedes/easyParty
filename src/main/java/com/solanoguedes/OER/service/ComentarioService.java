@@ -5,6 +5,8 @@ import com.solanoguedes.OER.model.Imagem;
 import com.solanoguedes.OER.model.Usuario;
 import com.solanoguedes.OER.model.Video;
 import com.solanoguedes.OER.repositories.ComentarioRepository;
+import com.solanoguedes.OER.repositories.ImagemRepository;
+import com.solanoguedes.OER.repositories.VideoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,13 +21,13 @@ public class ComentarioService {
     private ComentarioRepository comentarioRepository;
 
     @Autowired
-    private ImagemService imagemService;
+    private ImagemRepository imagemRepository;
 
     @Autowired
-    private VideoService videoService;
+    private VideoRepository videoRepository;
 
     public Comentario comentarImagem(Long idImagem, Long idUsuario, String texto) {
-        Imagem imagem = imagemService.obterImagemPorId(idImagem);
+        Imagem imagem = imagemRepository.findById(idImagem).orElseThrow(() -> new RuntimeException("Imagem não encontrada com ID: " + idImagem));
         Usuario usuario = new Usuario(idUsuario);
         Comentario comentario = new Comentario();
         comentario.setImagem(imagem);
@@ -36,7 +38,7 @@ public class ComentarioService {
     }
 
     public Comentario comentarVideo(Long idVideo, Long idUsuario, String texto) {
-        Video video = videoService.obterVideoPorId(idVideo);
+        Video video = videoRepository.findById(idVideo).orElseThrow(() -> new RuntimeException("Vídeo não encontrado com ID: " + idVideo));
         Usuario usuario = new Usuario(idUsuario);
         Comentario comentario = new Comentario();
         comentario.setVideo(video);

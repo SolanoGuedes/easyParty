@@ -58,10 +58,5 @@ public class VideoController {
         videoService.deletarVideo(idVideo);
     }
 
-    // Endpoint para obter detalhes do vídeo, incluindo curtidas e comentários
-    @GetMapping("/{idVideo}")
-    public ResponseEntity<Video> obterVideoComDetalhes(@PathVariable Long idVideo) {
-        Video video = videoService.obterVideoComDetalhes(idVideo);
-        return ResponseEntity.ok(video);
-    }
+
 }

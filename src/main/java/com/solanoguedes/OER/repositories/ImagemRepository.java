@@ -6,8 +6,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+
 @Repository
 public interface ImagemRepository extends JpaRepository<Imagem, Long> {
-
-    List<Imagem> findByUsuarioIdAndPrivacidade(Long idUsuario, String privacidade);
+    List<Imagem> findByUsuario_IdAndPrivacidade(Long usuarioId, String privacidade);
 }

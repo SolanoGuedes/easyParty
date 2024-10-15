@@ -16,7 +16,7 @@ public class Curtida {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idCurtida;
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_usuario", nullable = false)
