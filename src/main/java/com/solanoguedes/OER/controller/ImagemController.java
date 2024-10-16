@@ -4,6 +4,7 @@ import com.solanoguedes.OER.model.Imagem;
 import com.solanoguedes.OER.model.dto.ImagemDTO;
 import com.solanoguedes.OER.service.ImagemService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,29 +23,42 @@ public class ImagemController {
 
     // Endpoint para fazer upload de uma imagem
     @PostMapping("/upload")
-    public Imagem uploadImagem(@RequestParam("file") MultipartFile file, @RequestParam("legenda") String legenda, @RequestParam("privacidade") String privacidade,  @RequestParam(value = "expiraEm24Horas", defaultValue = "false") boolean expiraEm24Horas) throws IOException {
+    public ResponseEntity<Imagem> uploadImagem(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("legenda") String legenda,
+            @RequestParam("privacidade") String privacidade,
+            @RequestParam(value = "expiraEm24Horas", defaultValue = "false") boolean expiraEm24Horas) throws IOException {
+
         Long idUsuario = getAuthenticatedUserId();
-        return imagemService.uploadImagem(file, legenda, idUsuario, privacidade, expiraEm24Horas);
+        Imagem imagem = imagemService.uploadImagem(file, legenda, idUsuario, privacidade, expiraEm24Horas);
+        return ResponseEntity.status(HttpStatus.CREATED).body(imagem);  // Retorna 201 Created
     }
 
-    // Endpoint para listar todas as imagens públicas de um usuário (já existente)
+    // Endpoint para listar todas as imagens públicas de um usuário
     @GetMapping("/publicas")
-    public List<ImagemDTO> listarImagensPublicas(@RequestParam(required = false) Long idUsuario) {
+    public ResponseEntity<List<ImagemDTO>> listarImagensPublicas(@RequestParam(required = false) Long idUsuario) {
         Long usuarioId = (idUsuario != null) ? idUsuario : getAuthenticatedUserId();
-        return imagemService.listarImagensPublicas(usuarioId);
+        List<ImagemDTO> imagensPublicas = imagemService.listarImagensPublicas(usuarioId);
+        return ResponseEntity.ok(imagensPublicas);  // Retorna 200 OK
     }
 
-    // Novo endpoint para listar as imagens privadas do usuário autenticado
+    // Endpoint para listar as imagens privadas do usuário autenticado
     @GetMapping("/privadas")
-    public List<ImagemDTO> listarImagensPrivadas() {
+    public ResponseEntity<List<ImagemDTO>> listarImagensPrivadas() {
         Long idUsuario = getAuthenticatedUserId();
-        return imagemService.listarImagensPrivadas(idUsuario);
+        List<ImagemDTO> imagensPrivadas = imagemService.listarImagensPrivadas(idUsuario);
+        return ResponseEntity.ok(imagensPrivadas);  // Retorna 200 OK
     }
 
-    // Novo endpoint para buscar uma imagem específica pelo ID
+    // Endpoint para buscar uma imagem específica pelo ID
     @GetMapping("/{idImagem}")
-    public ImagemDTO obterImagemPorId(@PathVariable Long idImagem) {
-        return imagemService.obterImagemPorIdDTO(idImagem);  // Altere para chamar o método que retorna o DTO
+    public ResponseEntity<ImagemDTO> obterImagemPorId(@PathVariable Long idImagem) {
+        try {
+            ImagemDTO imagemDTO = imagemService.obterImagemPorIdDTO(idImagem);
+            return ResponseEntity.ok(imagemDTO);  // Retorna 200 OK se encontrada
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);  // Retorna 404 Not Found
+        }
     }
 
     // Endpoint para alterar a privacidade de uma imagem
@@ -52,15 +66,25 @@ public class ImagemController {
     public ResponseEntity<ImagemDTO> alterarPrivacidadeImagem(
             @PathVariable Long idImagem,
             @RequestParam("privacidade") String novaPrivacidade) {
-        ImagemDTO imagemDTO = imagemService.alterarPrivacidadeImagem(idImagem, novaPrivacidade);
-        return ResponseEntity.ok(imagemDTO);
+
+        try {
+            ImagemDTO imagemDTO = imagemService.alterarPrivacidadeImagem(idImagem, novaPrivacidade);
+            return ResponseEntity.ok(imagemDTO);  // Retorna 200 OK
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);  // Retorna 404 Not Found
+        }
     }
 
-
-    // Novo endpoint para deletar uma imagem
-    @DeleteMapping("deletar/{idImagem}")
-    public void deletarImagem(@PathVariable Long idImagem) throws IOException {
-        imagemService.deletarImagem(idImagem);
+    // Endpoint para deletar uma imagem
+    @DeleteMapping("/deletar/{idImagem}")
+    public ResponseEntity<Void> deletarImagem(@PathVariable Long idImagem) {
+        try {
+            imagemService.deletarImagem(idImagem);
+            return ResponseEntity.noContent().build();  // Retorna 204 No Content
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();  // Retorna 500 Internal Server Error
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();  // Retorna 404 Not Found
+        }
     }
-
 }
