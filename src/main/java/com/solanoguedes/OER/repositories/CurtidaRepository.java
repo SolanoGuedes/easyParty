@@ -13,4 +13,5 @@ public interface CurtidaRepository extends JpaRepository<Curtida, Long> {
     int countByVideo(Video video);
     int countByImagem(Imagem imagem);
     boolean existsByImagemAndUsuarioId(Imagem imagem, Long usuarioId);
+    boolean existsByVideoAndUsuarioId(Video video, Long usuarioId);
 }

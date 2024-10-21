@@ -1,12 +1,11 @@
 package com.solanoguedes.OER.service;
 
-import com.solanoguedes.OER.model.Comentario;
 import com.solanoguedes.OER.model.Video;
 import com.solanoguedes.OER.model.Usuario;
+import com.solanoguedes.OER.model.dto.VideoDTO;
 import com.solanoguedes.OER.repositories.ComentarioRepository;
 import com.solanoguedes.OER.repositories.CurtidaRepository;
 import com.solanoguedes.OER.repositories.VideoRepository;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Service;
@@ -18,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 public class VideoService {
@@ -34,14 +34,10 @@ public class VideoService {
     @Autowired
     private ComentarioRepository comentarioRepository;
 
-    @Autowired
-    private ComentarioService comentarioService;
-
-    // Scheduler para executar a tarefa de alteração de privacidade
     private final ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 
     // Método para fazer o upload de um vídeo
-    public Video uploadVideo(MultipartFile file, String legenda, Long idUsuario, String privacidade, Integer duracao, String tipoVideo, boolean expiraEm24Horas) throws IOException {
+    public VideoDTO uploadVideo(MultipartFile file, String legenda, Long idUsuario, String privacidade, Integer duracao, String tipoVideo, boolean expiraEm24Horas) throws IOException {
         // Valida o arquivo
         if (file.isEmpty()) {
             throw new IllegalArgumentException("O arquivo não pode estar vazio");
@@ -55,12 +51,12 @@ public class VideoService {
         video.setUrlVideo(urlVideo);
         video.setLegenda(legenda);
         video.setDataPostagem(LocalDateTime.now());
-        video.setUsuario(new Usuario(idUsuario)); // Relaciona o usuário
+        video.setUsuario(new Usuario(idUsuario));
         video.setFormatoArquivo(file.getContentType());
         video.setTamanhoArquivo((int) file.getSize());
         video.setDuracao(duracao);
-        video.setPrivacidade(privacidade);  // Define a privacidade (publico/privado)
-        video.setTipoVideo(tipoVideo);  // Define se é "story" ou "página_inicial"
+        video.setPrivacidade(privacidade);
+        video.setTipoVideo(tipoVideo);
 
         // Salva o vídeo no repositório primeiro para obter o ID gerado
         video = videoRepository.save(video);
@@ -70,38 +66,39 @@ public class VideoService {
             agendarMudancaDePrivacidade(video.getId(), 24);
         }
 
-        // Retorna o vídeo salvo
-        return video;
+        return convertToDTO(video);
     }
 
     // Método para listar todos os vídeos públicos de um usuário
-    public List<Video> listarVideosPublicos(Long idUsuario) {
-        return videoRepository.findByUsuarioIdAndPrivacidade(idUsuario, "publico");
+    public List<VideoDTO> listarVideosPublicos(Long idUsuario) {
+        return videoRepository.findByUsuarioIdAndPrivacidade(idUsuario, "publico")
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
     // Método para listar os vídeos privados de um usuário autenticado
-    public List<Video> listarVideosPrivados(Long idUsuario) {
-        return videoRepository.findByUsuarioIdAndPrivacidade(idUsuario, "privado");
+    public List<VideoDTO> listarVideosPrivados(Long idUsuario) {
+        return videoRepository.findByUsuarioIdAndPrivacidade(idUsuario, "privado")
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
     // Método para buscar um vídeo pelo ID
-    public Video obterVideoPorId(Long idVideo) {
-        Optional<Video> video = videoRepository.findById(idVideo);
-        if (video.isPresent()) {
-            return video.get();
-        } else {
-            throw new RuntimeException("Vídeo não encontrado com ID: " + idVideo);
-        }
+    public VideoDTO obterVideoPorId(Long idVideo) {
+        Video video = videoRepository.findById(idVideo)
+                .orElseThrow(() -> new RuntimeException("Vídeo não encontrado com ID: " + idVideo));
+        return convertToDTO(video);
     }
 
     // Método para deletar um vídeo
     public void deletarVideo(Long idVideo) throws IOException {
         Optional<Video> videoOptional = videoRepository.findById(idVideo);
-
         if (videoOptional.isPresent()) {
             Video video = videoOptional.get();
-            storageService.deleteFile(video.getUrlVideo());  // Remove o vídeo do armazenamento
-            videoRepository.delete(video);  // Remove o vídeo do banco de dados
+            storageService.deleteFile(video.getUrlVideo());
+            videoRepository.delete(video);
         } else {
             throw new RuntimeException("Vídeo não encontrado com ID: " + idVideo);
         }
@@ -115,9 +112,7 @@ public class VideoService {
     // Agenda a mudança de privacidade para daqui a 24 horas
     private void agendarMudancaDePrivacidade(Long idVideo, int horas) {
         long delayMillis = TimeUnit.HOURS.toMillis(horas);
-
-        // Agenda a tarefa de mudança de privacidade
-        ScheduledFuture<?> future = taskScheduler.schedule(() -> {
+        taskScheduler.schedule(() -> {
             Video video = videoRepository.findById(idVideo)
                     .orElseThrow(() -> new RuntimeException("Vídeo não encontrado com ID: " + idVideo));
             video.setPrivacidade("privado");
@@ -125,29 +120,32 @@ public class VideoService {
         }, new java.util.Date(System.currentTimeMillis() + delayMillis));
     }
 
-    // Método para mudar a privacidade de um vídeo
-    public Video alterarPrivacidadeVideo(Long idVideo, String novaPrivacidade) {
-        // Busca o vídeo pelo ID
+    // Método para alterar a privacidade de um vídeo
+    public VideoDTO alterarPrivacidadeVideo(Long idVideo, String novaPrivacidade) {
+        // Busca o vídeo no repositório ou lança exceção se não encontrar
         Video video = videoRepository.findById(idVideo)
                 .orElseThrow(() -> new RuntimeException("Vídeo não encontrado com ID: " + idVideo));
 
-        // Atualiza a privacidade do vídeo
+        // Atualiza a privacidade e salva no banco de dados
         video.setPrivacidade(novaPrivacidade);
-        return videoRepository.save(video);  // Salva a alteração no banco de dados
+        videoRepository.save(video);
+
+        // Retorna o vídeo atualizado como DTO
+        return convertToDTO(video);
     }
 
-    public Video obterVideoComDetalhes(Long idVideo) {
-        Video video = videoRepository.findById(idVideo)
-                .orElseThrow(() -> new RuntimeException("Vídeo não encontrado com ID: " + idVideo));
-
-        // Contar o número de curtidas
-        int numeroCurtidas = curtidaRepository.countByVideo(video);
-        video.setNumeroCurtidas(numeroCurtidas);
-
-        // Contar o número de comentários
-        int numeroComentarios = comentarioRepository.countByVideo(video);
-        video.setNumeroComentarios(numeroComentarios);
-
-        return video;
+    private VideoDTO convertToDTO(Video video) {
+        // Método para converter Video em VideoDTO
+        return new VideoDTO(
+                video.getId(),
+                video.getUrlVideo(),
+                video.getLegenda(),
+                video.getDataPostagem(),
+                video.getPrivacidade(),
+                video.getDuracao(),
+                video.getNumeroCurtidas(),
+                video.getNumeroComentarios(),
+                video.getTipoVideo()
+        );
     }
 }

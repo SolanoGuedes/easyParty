@@ -62,7 +62,13 @@ public class Video {
     @Transient // Isso não vai para o banco de dados
     private List<Comentario> comentarios; // Para armazenar os 3 primeiros comentários
 
-    // Construtor que aceita um ID do vídeo
+    @OneToMany(mappedBy = "video", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Curtida> curtidas; // Adiciona a lista de curtidas
+
+    @OneToMany(mappedBy = "video", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Comentario> comentariosList; // Adiciona a lista de comentários
+
+    // Construtor que aceita um ID da imagem
     public Video(Long idVideo) {
         this.id = idVideo;
     }

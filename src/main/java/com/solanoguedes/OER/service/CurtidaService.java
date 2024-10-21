@@ -7,6 +7,7 @@ import com.solanoguedes.OER.model.Video;
 import com.solanoguedes.OER.model.dto.ImagemDTO;
 import com.solanoguedes.OER.repositories.CurtidaRepository;
 import com.solanoguedes.OER.repositories.ImagemRepository;
+import com.solanoguedes.OER.repositories.VideoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,9 @@ public class CurtidaService {
 
     @Autowired
     private ImagemRepository imagemRepository;
+
+    @Autowired
+    private VideoRepository videoRepository;
 
     @Autowired
     private CurtidaRepository curtidaRepository;
@@ -49,14 +53,26 @@ public class CurtidaService {
     }
 
     public Curtida curtirVideo(Long idVideo, Long idUsuario) {
-        Video video = videoService.obterVideoPorId(idVideo);
-        Usuario usuario = new Usuario(idUsuario);
+        // Busca o vídeo no repositório pelo ID
+        Video video = videoRepository.findById(idVideo)
+                .orElseThrow(() -> new RuntimeException("Vídeo não encontrado com ID: " + idVideo));
+
+        // Verifica se o usuário já curtiu este vídeo
+        boolean jaCurtiu = curtidaRepository.existsByVideoAndUsuarioId(video, idUsuario);
+        if (jaCurtiu) {
+            throw new RuntimeException("O usuário já curtiu este vídeo.");
+        }
+
+        // Cria uma nova curtida e associa ao vídeo e ao usuário
+        Usuario usuario = new Usuario(idUsuario); // Certifique-se que este ID é válido
         Curtida curtida = new Curtida();
         curtida.setVideo(video);
         curtida.setUsuario(usuario);
 
+        // Salva a curtida no repositório
         return curtidaRepository.save(curtida);
     }
+
 
     public List<Curtida> listarCurtidasImagem(Long idImagem) {
         return curtidaRepository.findByImagemId(idImagem);
