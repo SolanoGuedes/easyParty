@@ -1,8 +1,10 @@
 package com.solanoguedes.OER.controller;
 
 import com.solanoguedes.OER.model.Comentario;
+import com.solanoguedes.OER.model.dto.ComentarioDTO;
 import com.solanoguedes.OER.service.ComentarioService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,42 +20,56 @@ public class ComentarioController {
     private ComentarioService comentarioService;
 
     @PostMapping("/imagem/{idImagem}")
-    public Comentario comentarImagem(@PathVariable Long idImagem, @RequestParam String texto) {
-        Long idUsuario = getAuthenticatedUserId();
-        return comentarioService.comentarImagem(idImagem, idUsuario, texto);
+    public ResponseEntity<?> comentarImagem(@PathVariable Long idImagem, @RequestParam String texto) {
+        try {
+            Long idUsuario = getAuthenticatedUserId();
+            Comentario comentario = comentarioService.comentarImagem(idImagem, idUsuario, texto);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Comentario feito com sucesso: " +"'"+comentario.getTexto()+"'");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao comentar a imagem: " + e.getMessage());
+        }
     }
 
     @PostMapping("/video/{idVideo}")
-    public Comentario comentarVideo(@PathVariable Long idVideo, @RequestParam String texto) {
-        Long idUsuario = getAuthenticatedUserId();
-        return comentarioService.comentarVideo(idVideo, idUsuario, texto);
+    public ResponseEntity<?> comentarVideo(@PathVariable Long idVideo, @RequestParam String texto) {
+        try {
+            Long idUsuario = getAuthenticatedUserId();
+            Comentario comentario = comentarioService.comentarVideo(idVideo, idUsuario, texto);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Comentario feito com sucesso: " +"'"+comentario.getTexto()+"'");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao comentar o vídeo: " + e.getMessage());
+        }
     }
 
     @GetMapping("/imagem/{idImagem}")
-    public List<Comentario> listarComentariosImagem(@PathVariable Long idImagem) {
-        return comentarioService.listarComentariosImagem(idImagem);
+    public ResponseEntity<?> listarComentariosImagem(@PathVariable Long idImagem) {
+        try {
+            List<ComentarioDTO> comentarios = comentarioService.listarComentariosImagem(idImagem);
+            return ResponseEntity.ok(comentarios);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao listar comentários da imagem: " + e.getMessage());
+        }
     }
 
     @GetMapping("/video/{idVideo}")
-    public List<Comentario> listarComentariosVideo(@PathVariable Long idVideo) {
-        return comentarioService.listarComentariosVideo(idVideo);
+    public ResponseEntity<?> listarComentariosVideo(@PathVariable Long idVideo) {
+        try {
+            List<ComentarioDTO> comentarios = comentarioService.listarComentariosVideo(idVideo);
+            return ResponseEntity.ok(comentarios);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao listar comentários do vídeo: " + e.getMessage());
+        }
     }
 
     @DeleteMapping("/{idComentario}")
-    public void removerComentario(@PathVariable Long idComentario) {
-        Long idUsuario = getAuthenticatedUserId();  // Supondo que já tenha um método para pegar o usuário autenticado
-        comentarioService.removerComentario(idComentario, idUsuario);
+    public ResponseEntity<?> removerComentario(@PathVariable Long idComentario) {
+        try {
+            Long idUsuario = getAuthenticatedUserId();
+            comentarioService.removerComentario(idComentario, idUsuario);
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao remover o comentário: " + e.getMessage());
+        }
     }
 
-    @GetMapping("/imagem/{idImagem}/top3")
-    public ResponseEntity<List<Comentario>> listarTresPrimeirosComentariosImagem(@PathVariable Long idImagem) {
-        List<Comentario> comentarios = comentarioService.listarTresPrimeirosComentariosImagem(idImagem);
-        return ResponseEntity.ok(comentarios);
-    }
-
-    @GetMapping("/video/{idVideo}/top3")
-    public ResponseEntity<List<Comentario>> listarTresPrimeirosComentariosVideo(@PathVariable Long idVideo) {
-        List<Comentario> comentarios = comentarioService.listarTresPrimeirosComentariosVideo(idVideo);
-        return ResponseEntity.ok(comentarios);
-    }
 }

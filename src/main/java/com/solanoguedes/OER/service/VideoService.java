@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -36,17 +35,18 @@ public class VideoService {
 
     private final ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 
+    public VideoService() {
+        taskScheduler.initialize(); // Inicializa o scheduler
+    }
+
     // Método para fazer o upload de um vídeo
-    public VideoDTO uploadVideo(MultipartFile file, String legenda, Long idUsuario, String privacidade, Integer duracao, String tipoVideo, boolean expiraEm24Horas) throws IOException {
-        // Valida o arquivo
+    public Video uploadVideo(MultipartFile file, String legenda, Long idUsuario, String privacidade, Integer duracao, String tipoVideo, boolean expiraEm24Horas) throws IOException {
         if (file.isEmpty()) {
             throw new IllegalArgumentException("O arquivo não pode estar vazio");
         }
 
-        // Faz o upload do arquivo usando o StorageService
         String urlVideo = storageService.uploadFile(file);
 
-        // Cria um objeto Video com os metadados e salva no banco de dados
         Video video = new Video();
         video.setUrlVideo(urlVideo);
         video.setLegenda(legenda);
@@ -58,38 +58,46 @@ public class VideoService {
         video.setPrivacidade(privacidade);
         video.setTipoVideo(tipoVideo);
 
-        // Salva o vídeo no repositório primeiro para obter o ID gerado
         video = videoRepository.save(video);
 
-        // Verifica se deve agendar a mudança de privacidade
         if (expiraEm24Horas && "story".equals(tipoVideo)) {
             agendarMudancaDePrivacidade(video.getId(), 24);
         }
 
-        return convertToDTO(video);
+        return video;
+    }
+
+    // Método para listar vídeos de um usuário com o mesmo nível de privacidade
+    private List<VideoDTO> listarVideosPorPrivacidade(Long idUsuario, String privacidade) {
+        return videoRepository.findByUsuarioIdAndPrivacidade(idUsuario, privacidade)
+                .stream()
+                .map(VideoDTO::new) // Utiliza o construtor que aceita um Video
+                .peek(videoDTO -> {
+                    // Atualiza as contagens de comentários e curtidas
+                    videoDTO.setNumeroComentarios(comentarioRepository.countByVideo(new Video(videoDTO.getId())));
+                    videoDTO.setNumeroCurtidas(curtidaRepository.countByVideo(new Video(videoDTO.getId())));
+                })
+                .collect(Collectors.toList());
     }
 
     // Método para listar todos os vídeos públicos de um usuário
     public List<VideoDTO> listarVideosPublicos(Long idUsuario) {
-        return videoRepository.findByUsuarioIdAndPrivacidade(idUsuario, "publico")
-                .stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+        return listarVideosPorPrivacidade(idUsuario, "publico");
     }
 
     // Método para listar os vídeos privados de um usuário autenticado
     public List<VideoDTO> listarVideosPrivados(Long idUsuario) {
-        return videoRepository.findByUsuarioIdAndPrivacidade(idUsuario, "privado")
-                .stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+        return listarVideosPorPrivacidade(idUsuario, "privado");
     }
 
     // Método para buscar um vídeo pelo ID
     public VideoDTO obterVideoPorId(Long idVideo) {
         Video video = videoRepository.findById(idVideo)
                 .orElseThrow(() -> new RuntimeException("Vídeo não encontrado com ID: " + idVideo));
-        return convertToDTO(video);
+        VideoDTO videoDTO = new VideoDTO(video);
+        videoDTO.setNumeroComentarios(comentarioRepository.countByVideo(video));
+        videoDTO.setNumeroCurtidas(curtidaRepository.countByVideo(video));
+        return videoDTO;
     }
 
     // Método para deletar um vídeo
@@ -102,11 +110,6 @@ public class VideoService {
         } else {
             throw new RuntimeException("Vídeo não encontrado com ID: " + idVideo);
         }
-    }
-
-    // Inicializa o Scheduler
-    public VideoService() {
-        taskScheduler.initialize();
     }
 
     // Agenda a mudança de privacidade para daqui a 24 horas
@@ -122,30 +125,15 @@ public class VideoService {
 
     // Método para alterar a privacidade de um vídeo
     public VideoDTO alterarPrivacidadeVideo(Long idVideo, String novaPrivacidade) {
-        // Busca o vídeo no repositório ou lança exceção se não encontrar
         Video video = videoRepository.findById(idVideo)
                 .orElseThrow(() -> new RuntimeException("Vídeo não encontrado com ID: " + idVideo));
 
-        // Atualiza a privacidade e salva no banco de dados
         video.setPrivacidade(novaPrivacidade);
         videoRepository.save(video);
 
-        // Retorna o vídeo atualizado como DTO
-        return convertToDTO(video);
-    }
-
-    private VideoDTO convertToDTO(Video video) {
-        // Método para converter Video em VideoDTO
-        return new VideoDTO(
-                video.getId(),
-                video.getUrlVideo(),
-                video.getLegenda(),
-                video.getDataPostagem(),
-                video.getPrivacidade(),
-                video.getDuracao(),
-                video.getNumeroCurtidas(),
-                video.getNumeroComentarios(),
-                video.getTipoVideo()
-        );
+        VideoDTO videoDTO = new VideoDTO(video);
+        videoDTO.setNumeroComentarios(comentarioRepository.countByVideo(video));
+        videoDTO.setNumeroCurtidas(curtidaRepository.countByVideo(video));
+        return videoDTO;
     }
 }

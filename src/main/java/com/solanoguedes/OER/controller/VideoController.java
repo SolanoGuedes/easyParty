@@ -1,6 +1,6 @@
 package com.solanoguedes.OER.controller;
 
-
+import com.solanoguedes.OER.model.Video;
 import com.solanoguedes.OER.model.dto.VideoDTO;
 import com.solanoguedes.OER.service.VideoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,31 +23,40 @@ public class VideoController {
 
     // Endpoint para fazer upload de um vídeo
     @PostMapping("/upload")
-    public ResponseEntity<VideoDTO> uploadVideo(@RequestParam("file") MultipartFile file,
-                                                @RequestParam("legenda") String legenda,
-                                                @RequestParam("privacidade") String privacidade,
-                                                @RequestParam("duracao") Integer duracao,
-                                                @RequestParam("tipoVideo") String tipoVideo,
-                                                @RequestParam(value = "expiraEm24Horas", defaultValue = "false") boolean expiraEm24Horas) throws IOException {
-        Long idUsuario = getAuthenticatedUserId();
-        VideoDTO videoDTO = videoService.uploadVideo(file, legenda, idUsuario, privacidade, duracao, tipoVideo, expiraEm24Horas);
-        return ResponseEntity.status(HttpStatus.CREATED).body(videoDTO);  // Retorna 201 Created
+    public ResponseEntity<Video> uploadVideo(@RequestParam("file") MultipartFile file, @RequestParam("legenda") String legenda, @RequestParam("privacidade") String privacidade, @RequestParam("duracao") Integer duracao, @RequestParam("tipoVideo") String tipoVideo, @RequestParam(value = "expiraEm24Horas", defaultValue = "false") boolean expiraEm24Horas) {
+        try {
+            Long idUsuario = getAuthenticatedUserId();
+            Video video = videoService.uploadVideo(file, legenda, idUsuario, privacidade, duracao, tipoVideo, expiraEm24Horas);
+            return ResponseEntity.status(HttpStatus.CREATED).body(video);  // Retorna 201 Created
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);  // Retorna 400 Bad Request
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);  // Retorna 500 Internal Server Error
+        }
     }
 
     // Endpoint para listar todos os vídeos públicos de um usuário
     @GetMapping("/publicos")
     public ResponseEntity<List<VideoDTO>> listarVideosPublicos(@RequestParam(required = false) Long idUsuario) {
-        Long usuarioId = (idUsuario != null) ? idUsuario : getAuthenticatedUserId();
-        List<VideoDTO> videosPublicos = videoService.listarVideosPublicos(usuarioId);
-        return ResponseEntity.ok(videosPublicos);  // Retorna 200 OK
+        try {
+            Long usuarioId = (idUsuario != null) ? idUsuario : getAuthenticatedUserId();
+            List<VideoDTO> videosPublicos = videoService.listarVideosPublicos(usuarioId);
+            return ResponseEntity.ok(videosPublicos);  // Retorna 200 OK
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);  // Retorna 404 Not Found
+        }
     }
 
     // Endpoint para listar os vídeos privados do usuário autenticado
     @GetMapping("/privados")
     public ResponseEntity<List<VideoDTO>> listarVideosPrivados() {
-        Long idUsuario = getAuthenticatedUserId();
-        List<VideoDTO> videosPrivados = videoService.listarVideosPrivados(idUsuario);
-        return ResponseEntity.ok(videosPrivados);  // Retorna 200 OK
+        try {
+            Long idUsuario = getAuthenticatedUserId();
+            List<VideoDTO> videosPrivados = videoService.listarVideosPrivados(idUsuario);
+            return ResponseEntity.ok(videosPrivados);  // Retorna 200 OK
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);  // Retorna 404 Not Found
+        }
     }
 
     // Endpoint para alterar a privacidade de um vídeo
@@ -55,7 +64,6 @@ public class VideoController {
     public ResponseEntity<VideoDTO> alterarPrivacidadeVideo(
             @PathVariable Long idVideo,
             @RequestParam("privacidade") String novaPrivacidade) {
-
         try {
             VideoDTO videoDTO = videoService.alterarPrivacidadeVideo(idVideo, novaPrivacidade);
             return ResponseEntity.ok(videoDTO);  // Retorna 200 OK

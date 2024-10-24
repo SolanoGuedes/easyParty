@@ -179,18 +179,5 @@ public class ImagemService {
         return new ImagemDTO(imagem.getId(), imagem.getPrivacidade(), imagem.getUrlImagem());
     }
 
-    public Imagem obterImagemComDetalhes(Long idImagem) {
-        Imagem imagem = imagemRepository.findById(idImagem)
-                .orElseThrow(() -> new RuntimeException("Imagem não encontrada com ID: " + idImagem));
 
-        // Contar o número de curtidas
-        int numeroCurtidas = curtidaRepository.countByImagem(imagem);
-        imagem.setNumeroCurtidas(numeroCurtidas);
-
-        // Contar o número de comentários
-        int numeroComentarios = comentarioRepository.countByImagem(imagem);
-        imagem.setNumeroComentarios(numeroComentarios);
-
-        return imagem;
-    }
 }
