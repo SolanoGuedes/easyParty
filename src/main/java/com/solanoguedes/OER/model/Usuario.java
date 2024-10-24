@@ -1,5 +1,6 @@
 package com.solanoguedes.OER.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.solanoguedes.OER.model.enums.ProfileEnum;
 import jakarta.persistence.*;
@@ -42,6 +43,7 @@ public class Usuario {
     @Column(nullable = false, unique = true, length = 150)
     private String email;
 
+    @JsonIgnore
     @NotBlank(message = "Senha não pode ser vazia.")
     @Size(min = 8, message = "A senha deve ter no mínimo 8 caracteres.")
     @Column(nullable = false)

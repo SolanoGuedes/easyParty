@@ -4,14 +4,18 @@ import com.solanoguedes.OER.model.Curtida;
 import com.solanoguedes.OER.model.Imagem;
 import com.solanoguedes.OER.model.Usuario;
 import com.solanoguedes.OER.model.Video;
+import com.solanoguedes.OER.model.dto.CurtidaDTO;
 import com.solanoguedes.OER.model.dto.ImagemDTO;
 import com.solanoguedes.OER.repositories.CurtidaRepository;
 import com.solanoguedes.OER.repositories.ImagemRepository;
+import com.solanoguedes.OER.repositories.UsuarioRepository;
 import com.solanoguedes.OER.repositories.VideoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CurtidaService {
@@ -31,6 +35,10 @@ public class CurtidaService {
     @Autowired
     private VideoService videoService;
 
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+
     public Curtida curtirImagem(Long idImagem, Long idUsuario) {
         // Busca a imagem no repositório pelo ID
         Imagem imagem = imagemRepository.findById(idImagem)
@@ -42,13 +50,11 @@ public class CurtidaService {
             throw new RuntimeException("O usuário já curtiu esta imagem.");
         }
 
-        // Cria uma nova curtida e associa à imagem e ao usuário
-        Usuario usuario = new Usuario(idUsuario);
         Curtida curtida = new Curtida();
         curtida.setImagem(imagem);
-        curtida.setUsuario(usuario);
+        curtida.setUsuario(new Usuario(idUsuario));
+        curtida.setDataCurtida(LocalDateTime.now());
 
-        // Salva a curtida no repositório
         return curtidaRepository.save(curtida);
     }
 
@@ -63,23 +69,25 @@ public class CurtidaService {
             throw new RuntimeException("O usuário já curtiu este vídeo.");
         }
 
-        // Cria uma nova curtida e associa ao vídeo e ao usuário
-        Usuario usuario = new Usuario(idUsuario); // Certifique-se que este ID é válido
         Curtida curtida = new Curtida();
         curtida.setVideo(video);
-        curtida.setUsuario(usuario);
+        curtida.setUsuario(new Usuario(idUsuario));
 
-        // Salva a curtida no repositório
+
         return curtidaRepository.save(curtida);
     }
 
 
-    public List<Curtida> listarCurtidasImagem(Long idImagem) {
-        return curtidaRepository.findByImagemId(idImagem);
+    public List<CurtidaDTO> listarCurtidasImagem(Long idImagem) {
+        return curtidaRepository.findByImagemId(idImagem).stream()
+                .map(CurtidaDTO::new)
+                .collect(Collectors.toList());
     }
 
-    public List<Curtida> listarCurtidasVideo(Long idVideo) {
-        return curtidaRepository.findByVideoId(idVideo);
+    public List<CurtidaDTO> listarCurtidasVideo(Long idVideo) {
+        return curtidaRepository.findByVideoId(idVideo).stream()
+                .map(CurtidaDTO::new)
+                .collect(Collectors.toList());
     }
 
     public void removerCurtida(Long idCurtida, Long idUsuario) {
