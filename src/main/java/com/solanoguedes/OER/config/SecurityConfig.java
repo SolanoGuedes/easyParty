@@ -41,6 +41,7 @@ public class SecurityConfig {
         AuthenticationManager authenticationManager = authenticationConfiguration.getAuthenticationManager();
 
         http
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, PUBLIC_MATCHERS_POST).permitAll()
@@ -60,9 +61,14 @@ public class SecurityConfig {
 
     // Configura CORS
     @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration().applyPermitDefaultValues();
-        configuration.setAllowedMethods(Arrays.asList("POST", "GET", "PUT", "DELETE", "PATCH"));
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:8080")); // Adapte conforme necessário
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
+        configuration.setAllowCredentials(true); // Permitir credenciais
+        configuration.setExposedHeaders(Arrays.asList("Authorization")); // Se precisar expor o cabeçalho Authorization
+
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

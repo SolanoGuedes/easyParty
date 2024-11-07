@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import com.solanoguedes.OER.service.exceptions.AuthorizationException;
 import com.solanoguedes.OER.service.exceptions.DataBindingViolationException;
-import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.lang3.exception.*;
 import org.hibernate.ObjectNotFoundException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Value;
