@@ -1,7 +1,11 @@
 package com.solanoguedes.OER.model.dto;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.*;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 public class LoginRequest {
 
     @NotBlank(message = "O username não pode ser vazio.")
@@ -10,20 +14,4 @@ public class LoginRequest {
     @NotBlank(message = "A senha não pode ser vazia.")
     private String senha;
 
-    // Getters e Setters
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getSenha() {
-        return senha;
-    }
-
-    public void setSenha(String senha) {
-        this.senha = senha;
-    }
 }

@@ -2,25 +2,28 @@ package com.solanoguedes.OER.controller;
 
 import com.solanoguedes.OER.model.dto.LoginRequest;
 import com.solanoguedes.OER.model.Usuario;
+import com.solanoguedes.OER.repositories.SeguidorRepository;
 import com.solanoguedes.OER.service.UsuarioService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.validation.Valid;
+import static com.solanoguedes.OER.utils.UserUtil.getAuthenticatedUserId;
 
-import java.util.Optional;
+
 @RestController
-@RequestMapping("/api/usuarios")
+@RequestMapping("/usuarios")
 public class UsuarioController {
+    @Autowired
+    private SeguidorRepository seguidorRepository;
 
     @Autowired
     private UsuarioService usuarioService;
 
     // Rota para cadastro de usuário
     @PostMapping("/cadastro")
-    public ResponseEntity<?> cadastrar(@Valid @RequestBody Usuario usuario) {
+    public ResponseEntity<?> cadastrar(@Valid @RequestBody Usuario usuario)  {
         try {
             Usuario novoUsuario = usuarioService.cadastrarUsuario(usuario);
             return ResponseEntity.ok(novoUsuario);
@@ -41,9 +44,10 @@ public class UsuarioController {
     }
 
     // Rota para atualizar um usuário
-    @PutMapping("/atualizar/{id}")
-    public ResponseEntity<?> atualizarUsuario(@PathVariable Long id, @Valid @RequestBody Usuario usuario) {
+    @PatchMapping("/atualizar")
+    public ResponseEntity<?> atualizarUsuario(@Valid @RequestBody Usuario usuario) {
         try {
+            Long id = getAuthenticatedUserId();
             Usuario usuarioAtualizado = usuarioService.atualizarUsuario(id, usuario);
             return ResponseEntity.ok(usuarioAtualizado);
         } catch (Exception e) {
@@ -52,10 +56,11 @@ public class UsuarioController {
     }
 
     // Rota para deletar um usuário
-    @DeleteMapping("/deletar/{username}")
-    public ResponseEntity<?> deletarUsuario(@PathVariable String username) {
+    @DeleteMapping("/deletar")
+    public ResponseEntity<?> deletarUsuario() {
         try {
-            usuarioService.deletarUsuario(username);
+            Long id = getAuthenticatedUserId();
+            usuarioService.deletarUsuario(id);
             return ResponseEntity.ok("Usuário deletado com sucesso.");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Erro ao deletar usuário: " + e.getMessage());
