@@ -43,7 +43,7 @@ public class Usuario {
     @Column(nullable = false, unique = true, length = 150)
     private String email;
 
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @NotBlank(message = "Senha não pode ser vazia.")
     @Size(min = 8, message = "A senha deve ter no mínimo 8 caracteres.")
     @Column(nullable = false)
